@@ -1,2 +1,2 @@
 # hazinggreeklife
-Measuring hazing in collegiate greek organizations
+Measuring hazing in collegiate greek organizations through news reports
