@@ -1,9 +1,3 @@
-library(readr)
-library(dplyr)
-
-hazeglife <- read.csv("")
-hazeglife
-summary(hazeglife)
 minwage
 unique(minwage$chain)
 filter(minwage, chain == "wendys")
@@ -16,7 +10,6 @@ filter(minwage, chain == "burgerking")
 # # filter(minwage, location == "northNJ")
 # # filter(minwage, location == "shoreNJ")
 # # filter(minwage, location == "southNJ")
-
 
 tb2_cases <- filter(table2, type == "cases")$'count'
 tb2_country <- filter(table2, type == "cases")$'country'
