@@ -2,12 +2,27 @@ library(readr)
 library(dplyr)
 library(readxl)
 library(ggplot2)
+library(lubridate)
 
 hazeglife <- read_excel("~/Desktop/hazinggreeklife/Hazing Database 4.25 presentation.xlsx")
 hazeglife
 summary(hazeglife)
 
-hazeglifeorg <- hazeglife$'Organization'
+greekorg <- hazeglife$'Organization'
+fratsoro <- hazeglife$'FraternitySorority'
+colluniv <- hazeglife$'CollegeUniversity'	
+collst <- hazeglife$'State'
+startdate <- hazeglife$'Date'
+month <- hazeglife$'Month'
+yr <- hazeglife$'Year'
+investsanc <- hazeglife$'Sanctioned'
+sanction <- hazeglife$'Resulting Action'
+enddate <- hazeglife$'End Date'
+camplat <- hazeglife$'CampusLat (N/S)'
+camplon <- hazeglife$'CampLong (E/W)'
+                                                                          
+hazeglife %>% 
+  mutate('Suspension Length' = difftime(startdate, enddate))
 
 unique(minwage$chain)
 unique(hazeglife$`Resulting Action`)
@@ -68,5 +83,6 @@ orgscamp <- tribble(
   "IU", 34,
   "TSU", 30
 )
+
 ggplot(data = orgscamp) +
   geom_bar(mapping = aes(x = institution, y = norgs), stat = "identity")
