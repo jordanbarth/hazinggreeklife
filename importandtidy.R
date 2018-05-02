@@ -7,9 +7,13 @@ library(maps)
 library(ggmap)
 library(mapdata)
 
-# Import and Tiday
+# Import and Tidy
 
-hazeglife <- read_excel("~/Desktop/hazinggreeklife/Hazing Database 4.25 presentation.xlsx")
+hazeglife <- read_excel("Desktop/hazinggreeklife/Hazing Database (updated).xlsx", 
+                        col_types = c("text", "text", "text", "text", "date", 
+                                      "text", "numeric", "text", "text", "date",
+                                      "numeric", "numeric", "numeric", 
+                                      "numeric"))
 hazeglife
 summary(hazeglife)
 
@@ -21,120 +25,101 @@ startdate <- hazeglife$'Date'
 month <- hazeglife$'Month'
 yr <- hazeglife$'Year'
 investsanc <- hazeglife$'Sanctioned'
-sanction <- hazeglife$'Resulting Action'
+ussanction <- hazeglife$'Resulting Action'
 enddate <- hazeglife$'End Date'
-camplat <- hazeglife$'CampusLat (N/S)'
-camplon <- hazeglife$'CampLong (E/W)'
-campsize <- hazeglife$'Campus Size'
-                                                                       
-hazeglife %>% 
-  mutate('Suspension Length' = difftime(startdate, enddate))
+camplat <- hazeglife$'CampusLat'
+camplon <- hazeglife$'CampusLong'
+hazeglife$Duration <- difftime(hazeglife$'End Date', hazeglife$Date, 
+                               units = c("days"))
+hazeglife$Duration
+sancdur <- hazeglife$'Duration'
+groupglife <- hazeglife$'Group'
+orderglife <- hazeglife$'Order'
 
 # Summary Statistics
 
-unique(minwage$chain)
-filter(minwage, chain == "wendys")
-filter(minwage, chain == "burgerking") 
-# filter(minwage, chain == "kfc") 
-# filter(minwage, chain == "roys")
-# unique(minwage$location)
-# filter(minwage, location == "PA")
-# # filter(minwage, location == "centralNJ")
-# # filter(minwage, location == "northNJ")
-# # filter(minwage, location == "shoreNJ")
-# # filter(minwage, location == "southNJ")
+# Number of fraternities and sororities
+fratsororbreak <- hazeglife %>%
+  count(FraternitySorority) %>%
+  arrange(desc(n))
+fratsororbreak
+ggplot(data = fratsororbreak) +
+  geom_bar(mapping = aes(x = FraternitySorority, y = n), stat = "identity")
 
-tb2_cases <- filter(table2, type == "cases")$'count'
-tb2_country <- filter(table2, type == "cases")$'country'
-tb2_year <- filter(table2, type == "cases")$'year'
-tb2_population <- filter(table2, type == "population")$'count'
-table2_clean <- tibble(country = tb2_country,
-                       year = tb2_year,
-                       rate = tb2_cases / tb2_population)
-table2_clean
-# Graphing
+# When were institutions sanctioning greek organizations the most for hazing?
 
-orgsyr <- tribble(
-  ~year, ~noforgs,
-  "2015", 16,
-  "2016", 4,
-  "2017", 239,
-  "2018", 54
-)
+ByYear <- hazeglife %>%
+  count(Year) %>%
+  arrange(desc(n))
+ByYear
+ggplot(data = ByYear) +
+  geom_bar(mapping = aes(x = Year, y = n), stat = "identity")
+
+# tibble for Summary Statistics - # of Sanctions by Organization
+orgsanc <-hazeglife %>%
+  count(Organization) %>%
+  arrange(desc(n))
+filter(orgsanc, n >= 14)
+orgsanc
+
+# Tibble for colleges with most sanctioned greek life
+
+CollUniv_tib <- hazeglife %>%
+  count(CollegeUniversity) %>%
+  arrange(desc(n))
+CollUniv_tib
+
+# Which sanctions are most popular/likely?
+
+sanctions <- hazeglife %>%
+  count(`Resulting Action`) %>%
+  arrange(desc(n))
+sanctions
+
 orgsaction <- tribble(
   ~sanction, ~noforgs,
-  "cease and desist", 16,
-  "disciplinary probation", 5,
-  "revocation", 7,
-  "social probation", 46,
-  "suspension", 239
+  "cease and desist", 201,
+  "Suspension", 171,
+  "Social Probation", 63,
+  "Revocation", 19,
+  "Disciplinary Probation", 17
 )
-orgssus <- tribble(
-  ~organization, ~suslength,
-  "Pi Kappa Alpha", 307.75,
-  "Sigma Alpha Epsilon", 287.25,
-  "Theta Kappa Epsilon", 146.5,
-  "Alpha Phi Alpha", 132,
-  "Theta Delta Chi", 125
-)
-ggplot(data = orgssus) +
-  geom_bar(mapping = aes(x = organization, y = suslength), stat = "identity")
 ggplot(data = orgsaction) +
   geom_bar(mapping = aes(x = sanction, y = noforgs), stat = "identity")
-ggplot(data = orgsyr) +
-  geom_bar(mapping = aes(x = year, y = noforgs), stat = "identity")
-
-orgscamp <- tribble(
-  ~institution, ~norgs,
-  "FSU", 52,
-  "PSU", 45,
-  "OSU", 36,
-  "IU", 34,
-  "TSU", 30
-)
-
-ggplot(data = orgscamp) +
-  geom_bar(mapping = aes(x = institution, y = norgs), stat = "identity")
 
 # mapping
 
-usa <- map_data("usa") # we already did this, but we can do it again
-ggplot() + geom_polygon(data = usa, aes(x=long, y = lat, group = group)) + 
+usa <- map_data("usa") 
+ggplot() + geom_polygon(data = usa, aes(x=long, y = lat, group = group), fill=NA, color="red") + 
   coord_fixed(1.3)
 
+greekmap <- ggplot() + 
+  geom_polygon(data = usa, aes(x=long, y = lat, group = group), fill = NA, color = "red") + 
+  coord_fixed(1.3)
+greekmap
 labs <- data.frame(
-  long = c(-122.064873, -122.306417),
-  lat = c(36.951968, 47.644855),
-  names = c("SWFSC-FED", "NWFSC"),
+  long = camplon,
+  lat = camplat,
   stringsAsFactors = FALSE
 )  
+greekmap + 
+  geom_point(data = labs, aes(x = long, y = lat), color = "black", size = 2)
 
-gg1 + 
-  geom_point(data = labs, aes(x = long, y = lat), color = "black", size = 5) +
-  geom_point(data = labs, aes(x = long, y = lat), color = "yellow", size = 4)
+# detailed map
 
-#subset of states 
-west_coast <- subset(states, region %in% c("california", "oregon", "washington"))
-
-ggplot(data = west_coast) + 
-  geom_polygon(aes(x = long, y = lat, group = group), fill = "palegreen", color = "black") + 
+greek_states <- map_data("state")
+ggplot(data = greek_states) + 
+  geom_polygon(aes(x = long, y = lat, group = group), fill = NA, color = "black") + 
   coord_fixed(1.3)
+labs <- data.frame(
+  long = camplon,
+  lat = camplat,
+  stringsAsFactors = FALSE
+)  
+greek_states + 
+  geom_point(data = labs, aes(x = long, y = lat), color = "red", size = 2)
+# gave me an error when trying to put together the nicer graph -- would you mind
+# commenting with suggesstions on how to resolve?
 
-#Plot the state first but let’s ditch the axes gridlines, and gray background by using the super-wonderful theme_nothing().
-
-ca_base <- ggplot(data = ca_df, mapping = aes(x = long, y = lat, group = group)) + 
-  coord_fixed(1.3) + 
-  geom_polygon(color = "black", fill = "gray")
-ca_base + theme_nothing()
-
-#Now plot the county boundaries in white:
-  
-  ca_base + theme_nothing() + 
-  geom_polygon(data = ca_county, fill = NA, color = "white") +
-  geom_polygon(color = "black", fill = NA)
-  
-# Ohio
-  
-# Pennsylvania 
-  
-# Florida
+# Also, wasn't able to figure out the chropleth map due to getting dates and duration
+# of suspension. Any recommendations on how I should best go about it with my data set?
